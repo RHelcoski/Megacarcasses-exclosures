@@ -1,0 +1,15 @@
+site,nickname,gender,age,section,lat,long,date_report,est_d_death,date_visit,year,age_days
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494

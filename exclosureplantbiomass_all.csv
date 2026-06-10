@@ -1,0 +1,141 @@
+site,nickname,gender,age,section,lat,long,date_report,est_d_death,date_visit,year,age_days,distance_m,treatment,grass_biomass_kg,forb_biomass,woody_biomass,notes
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,2.5,exclosure,0.47,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,2.5,control,0.385,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,5,exclosure,0.575,0.215,0.005,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,5,control,0.385,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,10,exclosure,0.245,0,0.005,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,10,control,0.365,0,0.025,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,15,exclosure,0.395,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,4-Jun-25,2025,861,15,control,0.21,0.025,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,2.5,exclosure,0.46,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,2.5,control,0.32,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,5,exclosure,0.56,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,5,control,0.42,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,10,exclosure,0.465,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,10,control,0.395,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,15,exclosure,0.29,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,5-Jun-25,2025,835,15,control,0.26,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,2.5,exclosure,0.94,0,0.045,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,2.5,control,0.54,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,5,exclosure,0.69,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,5,control,0.5,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,10,exclosure,0.705,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,10,control,0.355,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,15,exclosure,0.595,0.305,0.045,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,6-Jun-25,2025,1148,15,control,0.39,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,2.5,exclosure,0.7,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,2.5,control,0.67,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,5,exclosure,0.56,0,0.035,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,5,control,0.44,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,10,exclosure,0.555,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,10,control,0.345,0,0.02,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,15,exclosure,0.375,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2025,1494,15,control,0.425,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,2.5,exclosure,0.69,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,2.5,control,0.675,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,5,exclosure,0.81,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,5,control,0.68,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,10,exclosure,0.565,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,10,control,0.635,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,15,exclosure,0.61,0,0,
+B_2020_107,Nwanetsi,female,adult,Satara,-24.45488,31.87908,27-Dec-20,23-Dec-20,12-Jun-25,2025,1632,15,control,0.58,0.005,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,2.5,exclosure,0.525,0,0.035,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,2.5,control,0.4,0,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,5,exclosure,0.485,0,0.11,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,5,control,0.235,0.115,0.035,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,10,exclosure,0.29,0,0,damaged
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,10,control,0.38,0,0,damaged
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,15,exclosure,0.325,0,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,11-Jun-25,2025,1212,15,control,0.45,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,2.5,exclosure,0.5,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,2.5,control,0.4,0,0.005,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,5,exclosure,0.65,0,0.035,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,5,control,0.535,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,10,exclosure,0.56,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,10,control,0.325,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,15,exclosure,0.375,0,0,
+B_2022_54,Marheya,male,adult,N'wanetsi,-24.543322,31.799921,29-Aug-22,30-Jun-22,10-Jun-25,2025,2160,15,control,0.28,0.005,0,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,2.5,exclosure,0.215,0,0.015,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,2.5,control,0.13,0,0,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,5,exclosure,0.29,0,0.01,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,5,control,0.19,0,0,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,10,exclosure,0.385,0,0.01,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,10,control,0.11,0,0,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,15,exclosure,0.315,0,0,
+B_2022_32,Matjulu,male,adult,Malelane,-25.433326,31.455763,15-Apr-22,15-Apr-22,23-Jun-25,2025,611,15,control,0.105,0,0,
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,2.5,exclosure,0,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,2.5,control,0,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,5,exclosure,0.015,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,5,control,0,0.015,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,10,exclosure,0.03,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,10,control,0,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,15,exclosure,0.135,0,0,damaged
+B_2023_141,Sugar Vista,Male,Adult,Malelane,-25.505616,31.373127,18-Dec-23,18-Dec-23,27-Jun-25,2025,1153,15,control,0,0,0,damaged
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,2.5,exclosure,0.44,0,0.225,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,2.5,control,0,0,0.005,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,5,exclosure,0.52,0,0.08,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,5,control,0.08,0,0,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,10,exclosure,0.11,0,0.03,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,10,control,0,0,0.07,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,15,exclosure,0.195,0,0.08,
+B_2024_4,Gozi,Male,Adult,Stolsnek,-25.47763,31.331396,31-Jan-24,31-Jan-24,24-Jun-25,2025,268,15,control,0,0,0.11,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,5,exclosure,0.415,0.0009,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,5,control,0.2343,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,10,exclosure,0.3344,0,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,10,control,0.2347,0.0097,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,15,exclosure,0.2347,0.0097,0,
+B_2023_21,Marula,male,adult,Skukuza,-25.08175,31.52685,25-Feb-23,21-Feb-23,15-Jun-24,2024,480,15,control,0.2244,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,5,exclosure,0.175,0.0143,0.0966,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,5,control,0.0966,0.0346,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,10,exclosure,0.1463,0.0011,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,10,control,0.0757,0.0318,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,15,exclosure,0.1383,0,0,
+B_2023_15,Woody,male,adult,Pretoriuskop,-25.15009,31.2842,28-Jan-23,25-Jan-23,15-Jun-24,2024,507,15,control,0.0867,0.0044,0.0232,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,5,exclosure,0.3454,0.0589,0.0874,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,5,control,0.1734,0.0567,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,10,exclosure,0.3772,0.002,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,10,control,0.1833,0,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,15,exclosure,0.3079,0.0197,0,
+B_2022_30,Airport,male,adult,Skukuza,-24.97095,31.61932,15-Apr-22,15-Apr-22,15-Jun-24,2024,792,15,control,0.2619,0.0046,0.1749,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,5,exclosure,0.2139,0.0132,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,5,control,0.126,0.1015,0.0459,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,10,exclosure,0.2273,0.0265,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,10,control,0.1721,0,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,15,exclosure,0.2149,0,0,
+B_2022_11,Big Bull,male,adult,N'wanetsi,-24.536754,31.882148,22-Feb-22,15-Feb-22,15-Jun-24,2024,851,15,control,0.2925,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,5,exclosure,0.3423,0.0285,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,5,control,0.3154,0.0244,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,10,exclosure,0.2633,0.0386,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,10,control,0.3003,0.0345,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,15,exclosure,0.183,0,0,
+B_2021_28,Satara North,female,adult,Satara,-24.36439,31.76292,11-May-21,7-May-21,9-Jun-25,2024,1494,15,control,0.1863,0,0,
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,5,exclosure,0.9417,0,0,damaged
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,5,control,0,0,0,damaged
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,10,exclosure,0.0218,0,0,damaged
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,10,control,0.0345,0.0012,0,damaged
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,15,exclosure,0,0.0207,0.065,damaged
+B_2022_61,Mopane,male,adult,Shingwedzi,-23.12896,31.43464,7-Jul-22,7-Jul-22,15-Jun-24,2024,709,15,control,0.0547,0.0003,0.0092,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,5,exclosure,0,0,0,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,5,control,0,0,0,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,10,exclosure,0.1688,0,0,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,10,control,0.0692,0.0054,0.0397,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,15,exclosure,0,0,0,damaged
+B_2023_38,Mahlati,male,adult,Shingwedzi,-23.260311,31.464111,27-Jul-23,27-Jul-23,15-Jun-24,2024,324,15,control,0,0,0,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,5,exclosure,0,0,0,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,5,control,0,0,0,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,10,exclosure,0.1477,0.0077,0,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,10,control,0.046,0.004,0.0199,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,15,exclosure,0.0987,0.0011,0.0278,damaged
+B_2023_32,Phugwane,male,adult,Shingwedzi,-23.051003,31.268992,19-Apr-23,19-Apr-23,15-Jun-24,2024,423,15,control,0.0896,0.0011,0,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,5,exclosure,0.0414,0,0,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,5,control,0.0799,0.0033,0,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,10,exclosure,0.0103,0,0.1451,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,10,control,0.0402,0,0,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,15,exclosure,0.0007,0,0,damaged
+B_2022_33,Msinya,male,adult,Shangoni,-23.06978,30.91227,4-Apr-23,9-Apr-22,15-Jun-24,2024,798,15,control,0.0246,0,0,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,5,exclosure,0.0043,0,0,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,5,control,0.1012,0,0,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,10,exclosure,0.2484,0,0.2185,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,10,control,0.1116,0,0.0271,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,15,exclosure,0.0921,0.0043,0,damaged
+B_2022_75,Xidulu,male,adult,Shangoni,-23.0356,30.91466,13-Aug-22,6-Aug-22,15-Jun-24,2024,679,15,control,0.213,0,0,damaged
