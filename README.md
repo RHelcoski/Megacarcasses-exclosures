@@ -47,7 +47,7 @@ Depending on your local setup, additional packages may be required for mapping o
 
 This repository accompanies a manuscript currently in preparation/submission:
 
-**Helcoski, R., Mkansi, N., Reed, C. G., Thompson, D. I., Burkepile, D. E., Lemoine, N. P., Hammill, E., and du Toit, J. T.**  
+**Helcoski, R., Mkansi, N., Reed, C. G., Thompson, D. I., Schimel, J. P., Smit, I. P. J., Strydom, T., Tallia, A. G., Burkepile, D. E., Lemoine, N. P., Hammill, E., and du Toit, J. T.**  
 *Elephant megacarcasses create grazing hotspots in African savannas.*
 
 ## Contact
