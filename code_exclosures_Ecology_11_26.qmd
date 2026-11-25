@@ -1,0 +1,2628 @@
+---
+title: "Elephant megacarcasses leave grazing hotspots as ecological legacies in African savannas: reproducible analyses"
+author: "Ryan Helcoski"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+knitr::opts_chunk$set(fig.width = 7, fig.height = 5, dpi = 600, fig.align = "center")
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(emmeans)
+library(multcomp)
+library(multcompView)
+library(glmmTMB)
+library(broom.mixed)
+library(sandwich)
+library(lmtest)
+library(lmerTest)
+library(multcomp)
+library(stringr)
+library(patchwork)
+library(marginaleffects)
+library(ggbreak)
+
+# Put this QMD in the same directory as the CSV files, or change data_dir.
+data_dir <- " "
+
+# load files
+
+exclose <- read_csv("exclosure_df.csv")
+dung <- read_csv("dung_df.csv")
+```
+
+# Hypothesis 1: carcass-centered enrichment elevates herbaceous ANPP
+
+The primary H1 analysis uses herbaceous biomass accumulated inside exclosures following initial clipping as an estimate of herbaceous ANPP. Distance is treated as a categorical factor because the four sampling distances are discrete, unevenly spaced, and no particular functional form is assumed.
+
+```{r}
+#| label: h1-primary
+h1_exclosure <- exclose |>
+  dplyr::filter(treatment == "exclosure") |>
+  dplyr::mutate(
+    distance_f = factor(
+      distance_m,
+      levels = c(2.5, 5, 10, 15)
+    )
+  )
+
+# Primary H1 model
+mod_h1 <- lmerTest::lmer(
+  herbaceous_biomass_kg ~ distance_f + (1 | site),
+  data = h1_exclosure
+)
+
+anova(mod_h1)
+
+# Estimated marginal means and pairwise comparisons
+h1_emm <- emmeans::emmeans(mod_h1, ~ distance_f)
+
+h1_emm
+
+pairs(h1_emm, adjust = "tukey")
+
+multcomp::cld(
+  h1_emm,
+  Letters = letters,
+  adjust = "tukey"
+)
+```
+
+```{r}
+#| label: figure-3-herbaceous
+
+# ============================================================
+# PREPARE DATA FOR FIGURE 3
+# ============================================================
+
+exclose_plot <- exclose |>
+  dplyr::mutate(
+    distance_f = factor(
+      distance_m,
+      levels = c(2.5, 5, 10, 15)
+    )
+  )
+
+
+# ============================================================
+# PANEL A: estimated herbaceous ANPP
+# Exclosure biomass only
+# ============================================================
+
+h1_exclosure <- exclose_plot |>
+  dplyr::filter(treatment == "exclosure")
+
+mod_h1 <- lmerTest::lmer(
+  herbaceous_biomass_kg ~ distance_f + (1 | site),
+  data = h1_exclosure
+)
+
+h1_emm <- emmeans::emmeans(
+  mod_h1,
+  ~ distance_f
+)
+
+# Tukey group letters
+h1_letters <- multcomp::cld(
+  h1_emm,
+  Letters = letters,
+  adjust = "tukey"
+) |>
+  as.data.frame() |>
+  dplyr::mutate(
+    .group = stringr::str_trim(.group)
+  )
+
+# Put letters above highest raw observation at each distance
+h1_letters_plot <- h1_exclosure |>
+  dplyr::group_by(distance_f) |>
+  dplyr::summarise(
+    y_pos = max(herbaceous_biomass_kg, na.rm = TRUE) + 0.045,
+    .groups = "drop"
+  ) |>
+  dplyr::left_join(
+    h1_letters |>
+      dplyr::select(distance_f, .group),
+    by = "distance_f"
+  )
+
+fig2a <- ggplot(
+  h1_exclosure,
+  aes(
+    x = distance_f,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_boxplot(
+    width = 0.58,
+    fill = "#F8766D",
+    color = "black",
+    outlier.shape = NA,
+    alpha = 0.9
+  ) +
+  geom_jitter(
+    width = 0.09,
+    size = 2.4,
+    alpha = 0.85,
+    color = "#C44E52"
+  ) +
+  geom_text(
+    data = h1_letters_plot,
+    aes(
+      x = distance_f,
+      y = y_pos,
+      label = .group
+    ),
+    inherit.aes = FALSE,
+    size = 5,
+    fontface = "bold"
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1.08),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  labs(
+    x = "Distance from carcass center (m)",
+    y = expression("Herbaceous ANPP in exclosures (kg " * m^-2 * ")")
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  )
+
+
+# ============================================================
+# PANEL B: herbivore offtake
+# Exclosure - paired control
+# ============================================================
+
+offtake_df <- exclose_plot |>
+  dplyr::select(
+    site,
+    distance_f,
+    treatment,
+    herbaceous_biomass_kg
+  ) |>
+  tidyr::pivot_wider(
+    names_from = treatment,
+    values_from = herbaceous_biomass_kg
+  ) |>
+  dplyr::mutate(
+    herbivore_offtake_kg = exclosure - control
+  )
+
+
+# Repeated-measures model
+mod_offtake <- lmerTest::lmer(
+  herbivore_offtake_kg ~ distance_f + (1 | site),
+  data = offtake_df
+)
+
+offtake_emm <- emmeans::emmeans(
+  mod_offtake,
+  ~ distance_f
+) |>
+  as.data.frame()
+
+
+fig2b <- ggplot(
+  offtake_df,
+  aes(
+    x = distance_f,
+    y = herbivore_offtake_kg
+  )
+) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.7,
+    color = "grey45"
+  ) +
+  geom_jitter(
+    width = 0.09,
+    size = 2.5,
+    alpha = 0.75,
+    color = "#007C80"
+  ) +
+  geom_errorbar(
+    data = offtake_emm,
+    aes(
+      x = distance_f,
+      ymin = lower.CL,
+      ymax = upper.CL
+    ),
+    inherit.aes = FALSE,
+    width = 0.12,
+    linewidth = 0.9
+  ) +
+  geom_point(
+    data = offtake_emm,
+    aes(
+      x = distance_f,
+      y = emmean
+    ),
+    inherit.aes = FALSE,
+    shape = 21,
+    size = 4.2,
+    stroke = 0.9,
+    fill = "#00BFC4",
+    color = "black"
+  ) +
+  labs(
+    x = "Distance from carcass center (m)",
+    y = expression("Herbivore offtake (kg " * m^-2 * ")")
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)
+  )
+
+
+# ============================================================
+# COMBINE
+# ============================================================
+
+fig2 <- fig2a + fig2b +
+  patchwork::plot_layout(widths = c(1, 1)) +
+  patchwork::plot_annotation(
+    tag_levels = "A"
+  ) &
+  theme(
+    plot.tag = element_text(
+      size = 16,
+      face = "bold"
+    )
+  )
+
+fig2
+
+
+# ============================================================
+# SAVE
+# ============================================================
+
+ggsave(
+  file.path(
+    figure_dir,
+    "Figure_3_ANPP_and_herbivore_offtake_2025_2.png"
+  ),
+  fig2,
+  width = 11,
+  height = 5,
+  dpi = 600
+)
+
+```
+
+## Mechanistic (soil nutrient) analysis
+
+We used NO₃, NH₄, and Bray-P to characterize plant-available soil nutrient availability. Nutrient concentrations were log-transformed and standardized before PCA. We first tested whether the multivariate nutrient environment differed among carcass distances using a Euclidean-distance PERMANOVA with permutations constrained within site. We then used PC1 as a composite nutrient-availability axis and tested whether herbaceous ANPP increased with PC1. Higher PC1 values were oriented to represent greater overall nutrient availability.
+
+```{r}
+#| label: h1-nutrient-mechanism
+
+# ============================================================
+# PREPARE NUTRIENT DATA
+# ============================================================
+
+# Exclosures only because these provide the ANPP estimate
+# and soil values are duplicated across paired treatments.
+
+h1_nutrients <- exclose |>
+  dplyr::filter(
+    treatment == "exclosure"
+  ) |>
+  dplyr::mutate(
+    site = factor(site),
+
+    distance_f = factor(
+      distance_m,
+      levels = c(2.5, 5, 10, 15)
+    ),
+
+    # A-C: natural-log nutrient predictors, without adding 1.
+    NO3_ln = log(NO3_mgkg),
+    NH4_ln = log(NH3_mgkg),
+    BrayP_ln = log(P_Bray_I_mgkg),
+
+    # D: retain the original log1p inputs for PCA.
+    NO3_log = log1p(NO3_mgkg),
+    NH4_log = log1p(NH3_mgkg),
+    BrayP_log = log1p(P_Bray_I_mgkg)
+  )
+
+# Source column NH3_mgkg represents ammonium.
+# Natural logarithms require strictly positive concentrations.
+
+stopifnot(
+  all(is.finite(h1_nutrients$NO3_ln)),
+  all(is.finite(h1_nutrients$NH4_ln)),
+  all(is.finite(h1_nutrients$BrayP_ln)),
+  all(is.finite(h1_nutrients$herbaceous_biomass_kg))
+)
+
+
+# ============================================================
+# A-C: INDIVIDUAL NUTRIENT MODELS
+# ANPP ~ ln(nutrient) + (1 | site)
+# ============================================================
+
+mod_no3_anpp <- lme4::lmer(
+  herbaceous_biomass_kg ~
+    NO3_ln +
+    (1 | site),
+  data = h1_nutrients,
+  REML = TRUE
+)
+
+mod_nh4_anpp <- lme4::lmer(
+  herbaceous_biomass_kg ~
+    NH4_ln +
+    (1 | site),
+  data = h1_nutrients,
+  REML = TRUE
+)
+
+mod_brayp_anpp <- lme4::lmer(
+  herbaceous_biomass_kg ~
+    BrayP_ln +
+    (1 | site),
+  data = h1_nutrients,
+  REML = TRUE
+)
+
+
+# ============================================================
+# A-C: P VALUES
+# ML likelihood-ratio tests against a site-only model
+# ============================================================
+
+mod_nutrient_null_ml <- lme4::lmer(
+  herbaceous_biomass_kg ~
+    1 +
+    (1 | site),
+  data = h1_nutrients,
+  REML = FALSE
+)
+
+mod_no3_anpp_ml <- update(
+  mod_no3_anpp,
+  REML = FALSE
+)
+
+mod_nh4_anpp_ml <- update(
+  mod_nh4_anpp,
+  REML = FALSE
+)
+
+mod_brayp_anpp_ml <- update(
+  mod_brayp_anpp,
+  REML = FALSE
+)
+
+no3_p <- stats::anova(
+  mod_nutrient_null_ml,
+  mod_no3_anpp_ml,
+  refit = FALSE
+)$`Pr(>Chisq)`[2]
+
+nh4_p <- stats::anova(
+  mod_nutrient_null_ml,
+  mod_nh4_anpp_ml,
+  refit = FALSE
+)$`Pr(>Chisq)`[2]
+
+brayp_p <- stats::anova(
+  mod_nutrient_null_ml,
+  mod_brayp_anpp_ml,
+  refit = FALSE
+)$`Pr(>Chisq)`[2]
+
+
+# ============================================================
+# A-C: MARGINAL R2
+# Fixed-effect variance / total model variance
+# ============================================================
+
+no3_var_fixed <- var(
+  predict(mod_no3_anpp, re.form = NA)
+)
+
+no3_r2 <- no3_var_fixed / (
+  no3_var_fixed +
+    as.numeric(lme4::VarCorr(mod_no3_anpp)$site[1, 1]) +
+    sigma(mod_no3_anpp)^2
+)
+
+nh4_var_fixed <- var(
+  predict(mod_nh4_anpp, re.form = NA)
+)
+
+nh4_r2 <- nh4_var_fixed / (
+  nh4_var_fixed +
+    as.numeric(lme4::VarCorr(mod_nh4_anpp)$site[1, 1]) +
+    sigma(mod_nh4_anpp)^2
+)
+
+brayp_var_fixed <- var(
+  predict(mod_brayp_anpp, re.form = NA)
+)
+
+brayp_r2 <- brayp_var_fixed / (
+  brayp_var_fixed +
+    as.numeric(lme4::VarCorr(mod_brayp_anpp)$site[1, 1]) +
+    sigma(mod_brayp_anpp)^2
+)
+
+
+# ============================================================
+# A-C: PREDICTIONS AND 95% CONFIDENCE BANDS
+# Population-level fitted means
+# ============================================================
+
+# Nitrate
+
+no3_pred <- data.frame(
+  NO3_ln = seq(
+    min(h1_nutrients$NO3_ln),
+    max(h1_nutrients$NO3_ln),
+    length.out = 300
+  )
+)
+
+no3_X <- model.matrix(
+  ~ NO3_ln,
+  data = no3_pred
+)
+
+no3_pred$estimate <- drop(
+  no3_X %*% lme4::fixef(mod_no3_anpp)
+)
+
+no3_pred$SE <- sqrt(
+  rowSums(
+    (no3_X %*% as.matrix(vcov(mod_no3_anpp))) * no3_X
+  )
+)
+
+no3_pred$lower <-
+  no3_pred$estimate - qnorm(0.975) * no3_pred$SE
+
+no3_pred$upper <-
+  no3_pred$estimate + qnorm(0.975) * no3_pred$SE
+
+
+# Ammonium
+
+nh4_pred <- data.frame(
+  NH4_ln = seq(
+    min(h1_nutrients$NH4_ln),
+    max(h1_nutrients$NH4_ln),
+    length.out = 300
+  )
+)
+
+nh4_X <- model.matrix(
+  ~ NH4_ln,
+  data = nh4_pred
+)
+
+nh4_pred$estimate <- drop(
+  nh4_X %*% lme4::fixef(mod_nh4_anpp)
+)
+
+nh4_pred$SE <- sqrt(
+  rowSums(
+    (nh4_X %*% as.matrix(vcov(mod_nh4_anpp))) * nh4_X
+  )
+)
+
+nh4_pred$lower <-
+  nh4_pred$estimate - qnorm(0.975) * nh4_pred$SE
+
+nh4_pred$upper <-
+  nh4_pred$estimate + qnorm(0.975) * nh4_pred$SE
+
+
+# Bray-P
+
+brayp_pred <- data.frame(
+  BrayP_ln = seq(
+    min(h1_nutrients$BrayP_ln),
+    max(h1_nutrients$BrayP_ln),
+    length.out = 300
+  )
+)
+
+brayp_X <- model.matrix(
+  ~ BrayP_ln,
+  data = brayp_pred
+)
+
+brayp_pred$estimate <- drop(
+  brayp_X %*% lme4::fixef(mod_brayp_anpp)
+)
+
+brayp_pred$SE <- sqrt(
+  rowSums(
+    (brayp_X %*% as.matrix(vcov(mod_brayp_anpp))) * brayp_X
+  )
+)
+
+brayp_pred$lower <-
+  brayp_pred$estimate - qnorm(0.975) * brayp_pred$SE
+
+brayp_pred$upper <-
+  brayp_pred$estimate + qnorm(0.975) * brayp_pred$SE
+
+
+# ============================================================
+# PCA
+# NO3 + NH4 + BRAY-P
+# ============================================================
+
+nutrient_matrix <- h1_nutrients |>
+  dplyr::select(
+    NO3_log,
+    NH4_log,
+    BrayP_log
+  ) |>
+  scale()
+
+colnames(nutrient_matrix) <- c(
+  "NO3",
+  "NH4",
+  "BrayP"
+)
+
+nutrient_pca <- stats::prcomp(
+  nutrient_matrix,
+  center = FALSE,
+  scale. = FALSE
+)
+
+
+# Orient PC1 so the sum of its nutrient loadings is positive.
+
+if (
+  sum(nutrient_pca$rotation[, 1]) < 0
+) {
+  nutrient_pca$x[, 1] <-
+    -nutrient_pca$x[, 1]
+
+  nutrient_pca$rotation[, 1] <-
+    -nutrient_pca$rotation[, 1]
+}
+
+h1_nutrients$PC1 <-
+  nutrient_pca$x[, 1]
+
+summary(nutrient_pca)
+
+nutrient_pca$rotation
+
+
+# ============================================================
+# OPTIONAL SUPPORTING TEST:
+# DOES THE MULTIVARIATE NUTRIENT ENVIRONMENT VARY BY DISTANCE?
+# ============================================================
+
+set.seed(123)
+
+perm <- permute::how(
+  nperm = 9999
+)
+
+permute::setBlocks(perm) <-
+  h1_nutrients$site
+
+mod_nutrient_distance <- vegan::adonis2(
+  nutrient_matrix ~ distance_f,
+  data = h1_nutrients,
+  method = "euclidean",
+  permutations = perm
+)
+
+mod_nutrient_distance
+
+
+# ============================================================
+# D: PC1 -> HERBACEOUS ANPP
+# Adjusted for carcass-centered distance
+# ============================================================
+
+mod_pc1_anpp <- lmerTest::lmer(
+  herbaceous_biomass_kg ~
+    PC1 +
+    distance_f +
+    (1 | site),
+  data = h1_nutrients,
+  REML = TRUE
+)
+
+summary(mod_pc1_anpp)
+
+anova(mod_pc1_anpp)
+
+performance::r2_nakagawa(mod_pc1_anpp)
+
+
+# PC1 p-value from the adjusted mixed model
+
+pc1_p_adjusted <- summary(mod_pc1_anpp)$coefficients[
+  "PC1",
+  "Pr(>|t|)"
+]
+
+
+# Marginal R2 includes both PC1 and distance
+
+pc1_r2_marginal <- performance::r2_nakagawa(
+  mod_pc1_anpp
+)$R2_marginal
+
+
+# Predictions averaged equally across distance levels
+
+pc1_grid <- seq(
+  min(h1_nutrients$PC1),
+  max(h1_nutrients$PC1),
+  length.out = 300
+)
+
+pc1_pred <- emmeans::emmeans(
+  mod_pc1_anpp,
+  ~ PC1,
+  at = list(
+    PC1 = pc1_grid
+  ),
+  weights = "equal",
+  lmer.df = "satterthwaite"
+) |>
+  as.data.frame()
+
+
+# ============================================================
+# COLOURS AND DISPLAY SETTINGS
+# ============================================================
+
+col_A <- "#174F7A"  # Navy line
+col_B <- "#BC571D"  # Burnt-orange line
+col_C <- "#236746"  # Dark-green line
+col_D <- "#713A90"  # Purple line
+
+band_A <- "#AEDCF0" # Sky-blue band
+band_B <- "#F4D58A" # Gold band
+band_C <- "#B9E3CE" # Mint band
+band_D <- "#DAC3E8" # Lavender band
+
+point_colour <- "#303030"
+point_alpha <- 0.78
+band_alpha <- 0.65
+
+
+# ============================================================
+# SHARED FIGURE STYLE
+# ============================================================
+
+fig3_theme <- theme_classic(
+  base_size = 9,
+  base_family = "sans"
+) +
+  theme(
+    axis.text = element_text(
+      size = 8,
+      color = "black"
+    ),
+    axis.title.x = element_text(
+      size = 9,
+      margin = margin(t = 6)
+    ),
+    axis.title.y = element_blank(),
+    axis.line = element_line(
+      linewidth = 0.3
+    ),
+    axis.ticks = element_line(
+      linewidth = 0.3
+    ),
+    plot.tag = element_text(
+      size = 11,
+      face = "bold"
+    ),
+    plot.margin = margin(
+      6, 8, 8, 6
+    )
+  )
+
+fig3_y_scale <- scale_y_continuous(
+  breaks = c(
+    0.25, 0.50, 0.75, 1.00
+  ),
+  labels = scales::label_number(
+    accuracy = 0.01
+  ),
+  expand = expansion(
+    mult = 0
+  )
+)
+
+
+# ============================================================
+# FIGURE 2A
+# NO3 VS HERBACEOUS ANPP
+# ============================================================
+
+fig3a <- ggplot(
+  h1_nutrients,
+  aes(
+    x = NO3_ln,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_ribbon(
+    data = no3_pred,
+    aes(
+      x = NO3_ln,
+      ymin = lower,
+      ymax = upper
+    ),
+    inherit.aes = FALSE,
+    fill = band_A,
+    alpha = band_alpha
+  ) +
+  geom_line(
+    data = no3_pred,
+    aes(
+      x = NO3_ln,
+      y = estimate
+    ),
+    inherit.aes = FALSE,
+    color = col_A,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    size = 1.6,
+    color = point_colour,
+    alpha = point_alpha
+  ) +
+  scale_x_continuous(
+    breaks = log(
+      c(3, 10, 30, 100, 300, 1000)
+    ),
+    labels = c(
+      "3", "10", "30", "100", "300", "1000"
+    ),
+    expand = expansion(
+      mult = 0
+    )
+  ) +
+  fig3_y_scale +
+  coord_cartesian(
+    xlim = log(c(2.2, 1250)),
+    ylim = c(0.10, 1.20)
+  ) +
+  annotate(
+    "text",
+    x = log(2.6),
+    y = 1.18,
+    hjust = 0,
+    vjust = 1,
+    label = paste0(
+      "Marginal R² = ",
+      sprintf("%.3f", no3_r2),
+      "\np = ",
+      sprintf("%.4f", no3_p)
+    ),
+    size = 2.8,
+    lineheight = 1.1
+  ) +
+  labs(
+    tag = "A",
+    x = expression(
+      NO[3] ~ "(mg kg"^{-1} * ")"
+    ),
+    y = NULL
+  ) +
+  fig3_theme
+
+
+# ============================================================
+# FIGURE 2B
+# NH4 VS HERBACEOUS ANPP
+# ============================================================
+
+fig3b <- ggplot(
+  h1_nutrients,
+  aes(
+    x = NH4_ln,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_ribbon(
+    data = nh4_pred,
+    aes(
+      x = NH4_ln,
+      ymin = lower,
+      ymax = upper
+    ),
+    inherit.aes = FALSE,
+    fill = band_B,
+    alpha = band_alpha
+  ) +
+  geom_line(
+    data = nh4_pred,
+    aes(
+      x = NH4_ln,
+      y = estimate
+    ),
+    inherit.aes = FALSE,
+    color = col_B,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    size = 1.6,
+    color = point_colour,
+    alpha = point_alpha
+  ) +
+  scale_x_continuous(
+    breaks = log(
+      c(0.03, 0.1, 0.3, 1, 3)
+    ),
+    labels = c(
+      "0.03", "0.1", "0.3", "1", "3"
+    ),
+    expand = expansion(
+      mult = 0
+    )
+  ) +
+  fig3_y_scale +
+  coord_cartesian(
+    xlim = log(c(0.022, 8)),
+    ylim = c(0.10, 1.20)
+  ) +
+  annotate(
+    "text",
+    x = log(0.026),
+    y = 1.18,
+    hjust = 0,
+    vjust = 1,
+    label = paste0(
+      "Marginal R² = ",
+      sprintf("%.3f", nh4_r2),
+      "\np = ",
+      sprintf("%.4f", nh4_p)
+    ),
+    size = 2.8,
+    lineheight = 1.1
+  ) +
+  labs(
+    tag = "B",
+    x = expression(
+      NH[4] ~ "(mg kg"^{-1} * ")"
+    ),
+    y = NULL
+  ) +
+  fig3_theme +
+  theme(
+    axis.text.y = element_blank()
+  )
+
+
+# ============================================================
+# FIGURE 2C
+# BRAY-P VS HERBACEOUS ANPP
+# ============================================================
+
+fig3c <- ggplot(
+  h1_nutrients,
+  aes(
+    x = BrayP_ln,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_ribbon(
+    data = brayp_pred,
+    aes(
+      x = BrayP_ln,
+      ymin = lower,
+      ymax = upper
+    ),
+    inherit.aes = FALSE,
+    fill = band_C,
+    alpha = band_alpha
+  ) +
+  geom_line(
+    data = brayp_pred,
+    aes(
+      x = BrayP_ln,
+      y = estimate
+    ),
+    inherit.aes = FALSE,
+    color = col_C,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    size = 1.6,
+    color = point_colour,
+    alpha = point_alpha
+  ) +
+  scale_x_continuous(
+    breaks = log(
+      c(1, 3, 10, 30, 100, 300)
+    ),
+    labels = c(
+      "1", "3", "10", "30", "100", "300"
+    ),
+    expand = expansion(
+      mult = 0
+    )
+  ) +
+  fig3_y_scale +
+  coord_cartesian(
+    xlim = log(c(0.45, 420)),
+    ylim = c(0.10, 1.20)
+  ) +
+  annotate(
+    "text",
+    x = log(0.54),
+    y = 1.18,
+    hjust = 0,
+    vjust = 1,
+    label = paste0(
+      "Marginal R² = ",
+      sprintf("%.3f", brayp_r2),
+      "\np = ",
+      sprintf("%.4f", brayp_p)
+    ),
+    size = 2.8,
+    lineheight = 1.1
+  ) +
+  labs(
+    tag = "C",
+    x = expression(
+      "Bray-P (mg kg"^{-1} * ")"
+    ),
+    y = NULL
+  ) +
+  fig3_theme
+
+
+# ============================================================
+# FIGURE 2D
+# COMBINED NUTRIENT PC1 VS HERBACEOUS ANPP
+# ============================================================
+
+pc1_x_limits <- range(
+  h1_nutrients$PC1
+)
+
+pc1_x_limits <- pc1_x_limits +
+  c(-0.05, 0.05) * diff(pc1_x_limits)
+
+fig3d <- ggplot(
+  h1_nutrients,
+  aes(
+    x = PC1,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_ribbon(
+    data = pc1_pred,
+    aes(
+      x = PC1,
+      ymin = lower.CL,
+      ymax = upper.CL
+    ),
+    inherit.aes = FALSE,
+    fill = band_D,
+    alpha = band_alpha
+  ) +
+  geom_line(
+    data = pc1_pred,
+    aes(
+      x = PC1,
+      y = emmean
+    ),
+    inherit.aes = FALSE,
+    color = col_D,
+    linewidth = 0.65
+  ) +
+  geom_point(
+    size = 1.6,
+    color = point_colour,
+    alpha = point_alpha
+  ) +
+  scale_x_continuous(
+    breaks = c(-2, -1, 0, 1),
+    expand = expansion(
+      mult = 0
+    )
+  ) +
+  fig3_y_scale +
+  coord_cartesian(
+    xlim = pc1_x_limits,
+    ylim = c(0.10, 1.20)
+  ) +
+  annotate(
+    "text",
+    x = pc1_x_limits[1] +
+      0.025 * diff(pc1_x_limits),
+    y = 1.18,
+    hjust = 0,
+    vjust = 1,
+    label = paste0(
+      "Marginal R² = ",
+      sprintf("%.3f", pc1_r2_marginal),
+      "\np = ",
+      sprintf("%.4f", pc1_p_adjusted)
+    ),
+    size = 2.8,
+    lineheight = 1.1
+  ) +
+  labs(
+    tag = "D",
+    x = expression(
+      atop(
+        "Combined nutrient PC1",
+        NO[3] * ", " * NH[4] * ", and Bray-P"
+      )
+    ),
+    y = NULL
+  ) +
+  fig3_theme +
+  theme(
+    axis.text.y = element_blank()
+  )
+
+
+# ============================================================
+# COMBINE FIGURE 2
+# EQUAL-SIZED 2 x 2 PANELS WITH SHARED Y-AXIS TITLE
+# ============================================================
+
+fig3_panels <- patchwork::wrap_plots(
+  fig3a,
+  fig3b,
+  fig3c,
+  fig3d,
+  ncol = 2,
+  widths = c(1, 1),
+  heights = c(1, 1)
+)
+
+fig3_y_title <- patchwork::wrap_elements(
+  full = grid::textGrob(
+    expression(
+      "Herbaceous ANPP in exclosures (kg m"^{-2} * ")"
+    ),
+    rot = 90,
+    gp = grid::gpar(
+      fontsize = 10,
+      fontfamily = "sans"
+    )
+  )
+)
+
+fig3 <- patchwork::wrap_plots(
+  fig3_y_title,
+  patchwork::wrap_elements(
+    full = fig3_panels
+  ),
+  nrow = 1,
+  widths = c(0.055, 1)
+)
+
+fig3
+
+
+# ============================================================
+# SAVE FIGURE 3
+# ============================================================
+
+ggsave(
+  file.path(
+    figure_dir,
+    "Figure_2_nutrient_mechanism_4.png"
+  ),
+  fig3,
+  width = 6.5,
+  height = 6.3,
+  units = "in",
+  dpi = 600,
+  bg = "white"
+)
+
+```
+
+```{r}
+#| label: figure-3-nutrient-mechanism
+# ------------------------------------------------------------
+# PANEL A: nutrient PC1 across carcass distance
+# ------------------------------------------------------------
+
+pc1_summary <- h1_nutrients |>
+  dplyr::group_by(distance_f) |>
+  dplyr::summarise(
+    mean = mean(PC1),
+    se = sd(PC1) / sqrt(dplyr::n()),
+    .groups = "drop"
+  )
+
+fig3a <- ggplot(
+  h1_nutrients,
+  aes(
+    x = distance_f,
+    y = PC1
+  )
+) +
+  geom_jitter(
+    width = 0.08,
+    size = 2.4,
+    alpha = 0.7
+  ) +
+  geom_line(
+    data = pc1_summary,
+    aes(
+      x = distance_f,
+      y = mean,
+      group = 1
+    ),
+    inherit.aes = FALSE,
+    linewidth = 0.8
+  ) +
+  geom_errorbar(
+    data = pc1_summary,
+    aes(
+      x = distance_f,
+      ymin = mean - 1.96 * se,
+      ymax = mean + 1.96 * se
+    ),
+    inherit.aes = FALSE,
+    width = 0.12,
+    linewidth = 0.8
+  ) +
+  geom_point(
+    data = pc1_summary,
+    aes(
+      x = distance_f,
+      y = mean
+    ),
+    inherit.aes = FALSE,
+    shape = 21,
+    fill = "white",
+    size = 4,
+    stroke = 0.9
+  ) +
+  labs(
+    x = "Distance from carcass center (m)",
+    y = expression(
+      paste(
+        "Plant-available soil nutrient PC1 (",
+        NO[3], ", ", NH[4], ", Bray-P)"
+      )
+    )
+  ) +
+  theme_classic(base_size = 13)
+
+
+# ------------------------------------------------------------
+# PANEL B: nutrient PC1 vs herbaceous ANPP
+# ------------------------------------------------------------
+
+pc1_r2 <- summary(mod_pc1_anpp_raw)$r.squared
+pc1_p  <- summary(mod_pc1_anpp_raw)$coefficients["PC1", "Pr(>|t|)"]
+
+fig3b <- ggplot(
+  h1_nutrients,
+  aes(
+    x = PC1,
+    y = herbaceous_biomass_kg
+  )
+) +
+  geom_point(
+    size = 2.6,
+    alpha = 0.8
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    linewidth = 0.9
+  ) +
+  annotate(
+    "text",
+    x = -Inf,
+    y = Inf,
+    hjust = -0.1,
+    vjust = 1.3,
+    label = paste0(
+      "R² = ",
+      round(pc1_r2, 3),
+      "\np < 0.001"
+    ),
+    size = 4.5
+  ) +
+  labs(
+    x = expression(
+      paste(
+        "Plant-available soil nutrient PC1 (",
+        NO[3], ", ", NH[4], ", Bray-P)"
+      )
+    ),
+    y = expression(
+      paste(
+        "Herbaceous ANPP in exclosures (kg ",
+        m^{-2},
+        ")"
+      )
+    )
+  ) +
+  theme_classic(base_size = 13)
+
+
+# ------------------------------------------------------------
+# COMBINE
+# ------------------------------------------------------------
+
+fig3 <- fig3a + fig3b +
+  patchwork::plot_annotation(
+    tag_levels = "A"
+  ) &
+  theme(
+    plot.tag = element_text(
+      size = 16,
+      face = "bold"
+    )
+  )
+
+fig3
+
+
+# ------------------------------------------------------------
+# SAVE
+# ------------------------------------------------------------
+
+ggsave(
+  file.path(
+    figure_dir,
+    "Figure_3_nutrient_mechanism.png"
+  ),
+  fig3,
+  width = 11,
+  height = 5,
+  dpi = 600
+)
+
+```
+
+## H1 sensitivity analyses
+
+Pretreatment clipping data are used to verify that plots assigned to exclosure and control treatments did not differ systematically before exclusion began.
+
+```{r}
+#| label: pretreatment-sensitivity
+
+# Load only for this sensitivity analysis
+exclosures_BEFORE <- readr::read_csv(
+  file.path(data_dir, "exclosures_BEFORE.csv"),
+  show_col_types = FALSE
+)
+
+pre <- exclosures_BEFORE |>
+  dplyr::mutate(
+    treatment = factor(
+      treatment,
+      levels = c("control", "exclosure")
+    ),
+    herbaceous_biomass_kg =
+      dplyr::coalesce(grass_biomass_kg, 0) +
+      dplyr::coalesce(forb_biomass, 0)
+  ) |>
+  dplyr::select(
+    site,
+    nickname,
+    year,
+    distance_m,
+    treatment,
+    herbaceous_biomass_kg
+  ) |>
+  tidyr::pivot_wider(
+    names_from = treatment,
+    values_from = herbaceous_biomass_kg
+  ) |>
+  dplyr::filter(
+    !is.na(control),
+    !is.na(exclosure)
+  )
+
+t.test(
+  pre$exclosure,
+  pre$control,
+  paired = TRUE
+)
+```
+
+# Hypothesis 2: elevated production promotes herbivore consumption
+
+The primary experimental H2 test compares paired exclosure and grazed-control plots directly. Pair identity accounts for the matching of plots within site-year-distance combinations. Because pair identity already encodes distance, the distance main effect is absorbed by the blocking term; the treatment effect tests whether grazed controls contain less biomass overall, and the treatment × distance interaction tests whether the magnitude of herbivore removal changes across the carcass-centered gradient.
+
+```{r}
+#| label: h2-paired-model
+
+exclose_h2 <- exclose |>
+  dplyr::mutate(
+    treatment = factor(
+      treatment,
+      levels = c("control", "exclosure")
+    ),
+    distance_f = factor(
+      distance_m,
+      levels = c(2.5, 5, 10, 15)
+    ),
+    pair_id = interaction(site, distance_f, drop = TRUE)
+  )
+
+# Primary paired model
+mod_h2 <- lmerTest::lmer(
+  herbaceous_biomass_kg ~ treatment * distance_f +
+    (1 | site) +
+    (1 | pair_id),
+  data = exclose_h2
+)
+
+anova(mod_h2)
+
+# Planned exclosure-control contrast at each distance
+h2_emm <- emmeans::emmeans(
+  mod_h2,
+  ~ treatment | distance_f
+)
+
+h2_contrasts <- emmeans::contrast(
+  h2_emm,
+  method = list(
+    "exclosure - control" = c(-1, 1)
+  )
+)
+
+summary(
+  h2_contrasts,
+  by = NULL,
+  adjust = "holm",
+  infer = TRUE
+)
+```
+
+# Hypothesis 3: herbivore use leaves spatial and temporal signatures of nutrient return
+
+```{r}
+#| label: h3-dung-complete-2025
+# ============================================================
+# BASIC PREPARATION
+# ============================================================
+
+dung_h3 <- dung |>
+  dplyr::mutate(
+    site_key = factor(nickname),
+    dung_group = dplyr::case_when(
+      dung_type == "elephant" ~ "elephant",
+      dung_type %in% c("pat", "pellet", "zebra") ~ "ungulate",
+      TRUE ~ NA_character_
+    ),
+    age_years = age_days / 365.25
+  )
+
+# Compact audit: these are PHYSICAL sites, based on nickname.
+cat("\nPHYSICAL CARCASS-SITE COUNTS BY YEAR\n")
+print(
+  dung_h3 |>
+    dplyr::filter(site_type == "carcass") |>
+    dplyr::distinct(site_key, year_sampled) |>
+    dplyr::count(year_sampled, name = "n_sites")
+)
+
+cat("\nTOTAL UNIQUE PHYSICAL CARCASS SITES IN DATASET:\n")
+print(
+  dung_h3 |>
+    dplyr::filter(site_type == "carcass") |>
+    dplyr::summarise(n_sites = dplyr::n_distinct(site_key))
+)
+
+# Shows any site-year in which more than one legacy ID was attached
+# to the same physical carcass. These are intentionally combined.
+cat("\nSITE-YEARS WITH >1 LEGACY ID (EXPECTED TO BE COMBINED):\n")
+print(
+  dung_h3 |>
+    dplyr::filter(site_type == "carcass") |>
+    dplyr::distinct(site_key, nickname, year_sampled, id) |>
+    dplyr::count(site_key, nickname, year_sampled, name = "n_ids") |>
+    dplyr::filter(n_ids > 1)
+)
+
+
+# ============================================================
+# PANEL A
+# 2025 CARCASS VS PAIRED MATRIX
+# ============================================================
+
+dung_h3_2025 <- dung_h3 |>
+  dplyr::filter(year_sampled == 2025)
+
+# Identify site types that were genuinely surveyed.
+observed_site_types <- dung_h3_2025 |>
+  dplyr::distinct(site_key, nickname, site_type)
+
+# Sum observed dung mass by physical site, site type, and dung group.
+h3_positive <- dung_h3_2025 |>
+  dplyr::filter(!is.na(dung_group)) |>
+  dplyr::group_by(site_key, nickname, site_type, dung_group) |>
+  dplyr::summarise(
+    total_mass_kg = sum(mass_kg, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Add zeros only where that site type was genuinely surveyed.
+h3_site <- observed_site_types |>
+  tidyr::crossing(dung_group = c("elephant", "ungulate")) |>
+  dplyr::left_join(
+    h3_positive,
+    by = c("site_key", "nickname", "site_type", "dung_group")
+  ) |>
+  dplyr::mutate(
+    total_mass_kg = dplyr::coalesce(total_mass_kg, 0),
+    dung_density_g_m2 = total_mass_kg / sampled_area_m2 * 1000
+  )
+
+# Keep only physical sites with both carcass and matrix sampling.
+paired_sites <- observed_site_types |>
+  dplyr::group_by(site_key) |>
+  dplyr::summarise(
+    n_site_types = dplyr::n_distinct(site_type),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(n_site_types == 2) |>
+  dplyr::pull(site_key)
+
+h3_pair <- h3_site |>
+  dplyr::filter(site_key %in% paired_sites) |>
+  dplyr::select(
+    site_key,
+    nickname,
+    dung_group,
+    site_type,
+    dung_density_g_m2
+  ) |>
+  tidyr::pivot_wider(
+    names_from = site_type,
+    values_from = dung_density_g_m2
+  ) |>
+  dplyr::filter(!is.na(carcass), !is.na(control))
+
+cat("\nPANEL A PAIR COUNTS\n")
+print(table(h3_pair$dung_group))
+
+# Paired tests.
+h3_elephant_test <- h3_pair |>
+  dplyr::filter(dung_group == "elephant") |>
+  with(t.test(carcass, control, paired = TRUE))
+
+h3_ungulate_test <- h3_pair |>
+  dplyr::filter(dung_group == "ungulate") |>
+  with(t.test(carcass, control, paired = TRUE))
+
+cat("\nELEPHANT PAIRED TEST\n")
+print(h3_elephant_test)
+cat("\nUNGULATE PAIRED TEST\n")
+print(h3_ungulate_test)
+
+h3_pair_summary <- h3_pair |>
+  dplyr::mutate(difference = carcass - control) |>
+  dplyr::group_by(dung_group) |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    matrix_mean = mean(control),
+    carcass_mean = mean(carcass),
+    mean_difference = mean(difference),
+    lower_CI = mean(difference) -
+      qt(0.975, df = n - 1) * sd(difference) / sqrt(n),
+    upper_CI = mean(difference) +
+      qt(0.975, df = n - 1) * sd(difference) / sqrt(n),
+    .groups = "drop"
+  )
+
+print(h3_pair_summary)
+
+# Long form for Figure 4A.
+h3_pair_long <- h3_pair |>
+  tidyr::pivot_longer(
+    cols = c(control, carcass),
+    names_to = "site_type",
+    values_to = "dung_density_g_m2"
+  ) |>
+  dplyr::mutate(
+    site_type = factor(
+      dplyr::recode(
+        site_type,
+        control = "Matrix",
+        carcass = "Carcass"
+      ),
+      levels = c("Matrix", "Carcass")
+    ),
+    dung_group_label = factor(
+      dung_group,
+      levels = c("elephant", "ungulate"),
+      labels = c("Elephant", "Ungulate")
+    )
+  )
+
+
+# ============================================================
+# FIGURE 4A
+# ============================================================
+
+fig4a_elephant <- ggplot(
+  h3_pair_long |>
+    dplyr::filter(dung_group_label == "Elephant"),
+  aes(x = site_type, y = dung_density_g_m2)
+) +
+  geom_line(
+    aes(group = site_key),
+    color = "grey70",
+    alpha = 0.45,
+    linewidth = 0.4
+  ) +
+  geom_boxplot(
+    aes(fill = site_type),
+    width = 0.55,
+    outlier.shape = NA,
+    alpha = 0.85
+  ) +
+  geom_jitter(
+    aes(color = site_type),
+    width = 0.05,
+    size = 1.8,
+    alpha = 0.75
+  ) +
+  facet_wrap(~ dung_group_label) +
+  scale_fill_manual(
+    values = c("Matrix" = "#CC79A7", "Carcass" = "#009E73")
+  ) +
+  scale_color_manual(
+    values = c("Matrix" = "#A64D79", "Carcass" = "#007A58")
+  ) +
+  labs(
+    x = NULL,
+    y = expression("Dung density (g "*m^{-2}*")")
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    legend.position = "none",
+    strip.background = element_rect(fill = "grey90", color = "black"),
+    strip.text = element_text(size = 12),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+fig4a_ungulate <- ggplot(
+  h3_pair_long |>
+    dplyr::filter(dung_group_label == "Ungulate"),
+  aes(x = site_type, y = dung_density_g_m2)
+) +
+  geom_line(
+    aes(group = site_key),
+    color = "grey70",
+    alpha = 0.45,
+    linewidth = 0.4
+  ) +
+  geom_boxplot(
+    aes(fill = site_type),
+    width = 0.55,
+    outlier.shape = NA,
+    alpha = 0.85
+  ) +
+  geom_jitter(
+    aes(color = site_type),
+    width = 0.05,
+    size = 1.8,
+    alpha = 0.75
+  ) +
+  facet_wrap(~ dung_group_label) +
+  scale_fill_manual(
+    values = c("Matrix" = "#CC79A7", "Carcass" = "#009E73")
+  ) +
+  scale_color_manual(
+    values = c("Matrix" = "#A64D79", "Carcass" = "#007A58")
+  ) +
+  labs(x = NULL, y = NULL) +
+  theme_classic(base_size = 13) +
+  theme(
+    legend.position = "none",
+    strip.background = element_rect(fill = "grey90", color = "black"),
+    strip.text = element_text(size = 12),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+fig4a_inner <- (fig4a_elephant + fig4a_ungulate) +
+  patchwork::plot_layout(ncol = 2, widths = c(1, 1))
+
+fig4a <- patchwork::wrap_elements(full = fig4a_inner)
+
+
+# ============================================================
+# PANEL B
+# 2023-2025 SITE-LEVEL DUNG DENSITY VS CARCASS AGE
+# ============================================================
+
+dung_age <- dung_h3 |>
+  dplyr::filter(site_type == "carcass") |>
+  dplyr::mutate(
+    dung_group_label = dplyr::case_when(
+      dung_group == "elephant" ~ "Elephant",
+      dung_group == "ungulate" ~ "Ungulate",
+      TRUE ~ NA_character_
+    )
+  )
+
+# One row per PHYSICAL site x year. Legacy IDs are deliberately omitted.
+siteyear_meta <- dung_age |>
+  dplyr::group_by(site_key, nickname, year_sampled) |>
+  dplyr::summarise(
+    age_days = dplyr::first(age_days[!is.na(age_days)]),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(age_years = age_days / 365.25)
+
+siteyear_positive <- dung_age |>
+  dplyr::filter(!is.na(dung_group_label)) |>
+  dplyr::group_by(
+    site_key,
+    nickname,
+    year_sampled,
+    dung_group_label
+  ) |>
+  dplyr::summarise(
+    total_mass_kg = sum(mass_kg, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Add legitimate zero observations for sampled site-years.
+site_dung_age <- siteyear_meta |>
+  tidyr::crossing(dung_group = c("Elephant", "Ungulate")) |>
+  dplyr::left_join(
+    siteyear_positive,
+    by = c(
+      "site_key",
+      "nickname",
+      "year_sampled",
+      "dung_group" = "dung_group_label"
+    )
+  ) |>
+  dplyr::mutate(
+    total_mass_kg = dplyr::coalesce(total_mass_kg, 0),
+    dung_density_g_m2 = total_mass_kg / sampled_area_m2 * 1000,
+    year_sampled = factor(year_sampled),
+    site_key = factor(site_key)
+  )
+
+cat("\nPANEL B PHYSICAL SITES / SITE-YEARS\n")
+print(
+  site_dung_age |>
+    dplyr::summarise(
+      n_sites = dplyr::n_distinct(site_key),
+      n_site_years = dplyr::n_distinct(interaction(site_key, year_sampled)),
+      min_age = min(age_years, na.rm = TRUE),
+      max_age = max(age_years, na.rm = TRUE)
+    )
+)
+
+site_dung_elephant <- site_dung_age |>
+  dplyr::filter(dung_group == "Elephant")
+
+site_dung_ungulate <- site_dung_age |>
+  dplyr::filter(dung_group == "Ungulate")
+
+# Tweedie GLMMs: true zeros + continuous positive values.
+mod_ele_age <- glmmTMB::glmmTMB(
+  dung_density_g_m2 ~
+    age_years +
+    year_sampled +
+    (1 | site_key),
+  family = glmmTMB::tweedie(link = "log"),
+  data = site_dung_elephant
+)
+
+mod_ung_age <- glmmTMB::glmmTMB(
+  dung_density_g_m2 ~
+    age_years +
+    year_sampled +
+    (1 | site_key),
+  family = glmmTMB::tweedie(link = "log"),
+  data = site_dung_ungulate
+)
+
+mod_ele_age_null <- update(mod_ele_age, . ~ . - age_years)
+mod_ung_age_null <- update(mod_ung_age, . ~ . - age_years)
+
+cat("\nPANEL B: ELEPHANT AGE MODEL\n")
+print(summary(mod_ele_age))
+print(anova(mod_ele_age_null, mod_ele_age))
+
+cat("\nPANEL B: UNGULATE AGE MODEL\n")
+print(summary(mod_ung_age))
+print(anova(mod_ung_age_null, mod_ung_age))
+
+
+# ============================================================
+# MODEL-DERIVED AGE PREDICTIONS
+# Averaged across sampling-year levels.
+# ============================================================
+
+age_grid <- seq(
+  min(site_dung_age$age_years, na.rm = TRUE),
+  max(site_dung_age$age_years, na.rm = TRUE),
+  length.out = 200
+)
+
+ele_pred <- emmeans::emmeans(
+  mod_ele_age,
+  ~ age_years,
+  at = list(age_years = age_grid),
+  type = "response"
+) |>
+  as.data.frame() |>
+  dplyr::transmute(
+    age_years,
+    estimate = response,
+    conf.low = asymp.LCL,
+    conf.high = asymp.UCL,
+    dung_group = "Elephant"
+  )
+
+ung_pred <- emmeans::emmeans(
+  mod_ung_age,
+  ~ age_years,
+  at = list(age_years = age_grid),
+  type = "response"
+) |>
+  as.data.frame() |>
+  dplyr::transmute(
+    age_years,
+    estimate = response,
+    conf.low = asymp.LCL,
+    conf.high = asymp.UCL,
+    dung_group = "Ungulate"
+  )
+
+age_predictions <- dplyr::bind_rows(ele_pred, ung_pred)
+
+
+# ============================================================
+# FIGURE 4B
+# ============================================================
+
+fig4b_elephant <- ggplot(
+  site_dung_age |>
+    dplyr::filter(dung_group == "Elephant"),
+  aes(x = age_years, y = dung_density_g_m2)
+) +
+  geom_point(size = 1.8, alpha = 0.55, color = "grey35") +
+  geom_ribbon(
+    data = age_predictions |>
+      dplyr::filter(dung_group == "Elephant"),
+    aes(x = age_years, ymin = conf.low, ymax = conf.high),
+    inherit.aes = FALSE,
+    fill = "#0072B2",
+    alpha = 0.16
+  ) +
+  geom_line(
+    data = age_predictions |>
+      dplyr::filter(dung_group == "Elephant"),
+    aes(x = age_years, y = estimate),
+    inherit.aes = FALSE,
+    color = "#0072B2",
+    linewidth = 1.05
+  ) +
+  facet_wrap(~ dung_group) +
+  ggbreak::scale_y_break(c(115, 120), scales = 0.25) +
+  labs(
+    x = "Carcass age (years)",
+    y = expression("Dung density (g "*m^{-2}*")")
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    strip.background = element_rect(fill = "grey90", color = "black"),
+    strip.text = element_text(size = 12),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+fig4b_ungulate <- ggplot(
+  site_dung_age |>
+    dplyr::filter(dung_group == "Ungulate"),
+  aes(x = age_years, y = dung_density_g_m2)
+) +
+  geom_point(size = 1.8, alpha = 0.55, color = "grey35") +
+  geom_ribbon(
+    data = age_predictions |>
+      dplyr::filter(dung_group == "Ungulate"),
+    aes(x = age_years, ymin = conf.low, ymax = conf.high),
+    inherit.aes = FALSE,
+    fill = "#D55E00",
+    alpha = 0.16
+  ) +
+  geom_line(
+    data = age_predictions |>
+      dplyr::filter(dung_group == "Ungulate"),
+    aes(x = age_years, y = estimate),
+    inherit.aes = FALSE,
+    color = "#D55E00",
+    linewidth = 1.05
+  ) +
+  facet_wrap(~ dung_group) +
+  ggbreak::scale_y_break(c(40, 45), scales = 0.25) +
+  labs(x = "Carcass age (years)", y = NULL) +
+  theme_classic(base_size = 13) +
+  theme(
+    strip.background = element_rect(fill = "grey90", color = "black"),
+    strip.text = element_text(size = 12),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+fig4b_inner <- (fig4b_elephant + fig4b_ungulate) +
+  patchwork::plot_layout(ncol = 2, widths = c(1, 1))
+
+fig4b <- patchwork::wrap_elements(full = fig4b_inner)
+
+
+# ============================================================
+# PANEL C
+# 2023-2025 SITE-YEAR-DISTANCE-BAND DATA
+# ============================================================
+
+band_labels <- paste0(0:14, "-", 1:15)
+
+band_areas <- tibble::tibble(
+  distance_band = factor(band_labels, levels = band_labels),
+  sampled_area_m2 = c(3.25, rep(4, 14)),
+  band_mid = seq(0.5, 14.5, by = 1)
+)
+
+dung_carcass <- dung_h3 |>
+  dplyr::filter(site_type == "carcass")
+
+# Again: one row per PHYSICAL site x year, not per legacy ID x year.
+siteyear_distance_meta <- dung_carcass |>
+  dplyr::group_by(site_key, nickname, year_sampled) |>
+  dplyr::summarise(
+    age_days = dplyr::first(age_days[!is.na(age_days)]),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(age_years = age_days / 365.25)
+
+dung_banded_positive <- dung_carcass |>
+  dplyr::mutate(
+    distance_band = cut(
+      distance_m,
+      breaks = 0:15,
+      include.lowest = TRUE,
+      right = TRUE,
+      labels = band_labels
+    )
+  ) |>
+  dplyr::filter(
+    !is.na(dung_group),
+    !is.na(distance_band),
+    !is.na(mass_kg),
+    mass_kg > 0
+  )
+
+site_distance_grid <- siteyear_distance_meta |>
+  tidyr::crossing(
+    distance_band = factor(band_labels, levels = band_labels),
+    dung_group = c("elephant", "ungulate")
+  )
+
+dung_distance <- dung_banded_positive |>
+  dplyr::group_by(
+    site_key,
+    nickname,
+    year_sampled,
+    distance_band,
+    dung_group
+  ) |>
+  dplyr::summarise(
+    band_mass_kg = sum(mass_kg, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::right_join(
+    site_distance_grid,
+    by = c(
+      "site_key",
+      "nickname",
+      "year_sampled",
+      "distance_band",
+      "dung_group"
+    )
+  ) |>
+  dplyr::left_join(band_areas, by = "distance_band") |>
+  dplyr::mutate(
+    band_mass_kg = dplyr::coalesce(band_mass_kg, 0),
+    dung_density_g_m2 = band_mass_kg / sampled_area_m2 * 1000,
+    site_key = factor(site_key),
+    year_sampled = factor(year_sampled),
+    age_years_sc = age_years - mean(age_years, na.rm = TRUE)
+  )
+
+
+# ============================================================
+# ZERO-INFLATED GAMMA DISTANCE MODELS
+# ============================================================
+
+fit_dung_models <- function(dgroup) {
+
+  dat <- dung_distance |>
+    dplyr::filter(dung_group == dgroup)
+
+  # A: zero-inflation explained by carcass age.
+  mod_A <- glmmTMB::glmmTMB(
+    dung_density_g_m2 ~
+      band_mid +
+      (1 | site_key) +
+      (1 | year_sampled),
+    ziformula = ~ age_years_sc + (1 | site_key),
+    family = glmmTMB::ziGamma(link = "log"),
+    data = dat
+  )
+
+  # B: zero-inflation explained by carcass age + distance.
+  mod_B <- glmmTMB::glmmTMB(
+    dung_density_g_m2 ~
+      band_mid +
+      (1 | site_key) +
+      (1 | year_sampled),
+    ziformula = ~ age_years_sc + band_mid + (1 | site_key),
+    family = glmmTMB::ziGamma(link = "log"),
+    data = dat
+  )
+
+  # C: intercept-only zero-inflation component.
+  mod_C <- glmmTMB::glmmTMB(
+    dung_density_g_m2 ~
+      band_mid +
+      (1 | site_key) +
+      (1 | year_sampled),
+    ziformula = ~ 1 + (1 | site_key),
+    family = glmmTMB::ziGamma(link = "log"),
+    data = dat
+  )
+
+  models <- list(A = mod_A, B = mod_B, C = mod_C)
+
+  aic_table <- AIC(mod_A, mod_B, mod_C) |>
+    as.data.frame() |>
+    tibble::rownames_to_column("model") |>
+    dplyr::mutate(
+      model = dplyr::recode(
+        model,
+        mod_A = "A",
+        mod_B = "B",
+        mod_C = "C"
+      ),
+      delta_AIC = AIC - min(AIC)
+    )
+
+  best_name <- aic_table$model[which.min(aic_table$AIC)]
+  best_model <- models[[best_name]]
+
+  # Null model for the CONDITIONAL distance effect, while preserving
+  # the selected zero-inflation structure.
+  distance_null <- switch(
+    best_name,
+
+    A = glmmTMB::glmmTMB(
+      dung_density_g_m2 ~
+        1 +
+        (1 | site_key) +
+        (1 | year_sampled),
+      ziformula = ~ age_years_sc + (1 | site_key),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = dat
+    ),
+
+    B = glmmTMB::glmmTMB(
+      dung_density_g_m2 ~
+        1 +
+        (1 | site_key) +
+        (1 | year_sampled),
+      ziformula = ~ age_years_sc + band_mid + (1 | site_key),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = dat
+    ),
+
+    C = glmmTMB::glmmTMB(
+      dung_density_g_m2 ~
+        1 +
+        (1 | site_key) +
+        (1 | year_sampled),
+      ziformula = ~ 1 + (1 | site_key),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = dat
+    )
+  )
+
+  distance_LRT <- anova(distance_null, best_model)
+
+  # Null model for the ZERO-INFLATION age term.
+  age_null <- switch(
+    best_name,
+
+    A = glmmTMB::glmmTMB(
+      dung_density_g_m2 ~
+        band_mid +
+        (1 | site_key) +
+        (1 | year_sampled),
+      ziformula = ~ 1 + (1 | site_key),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = dat
+    ),
+
+    B = glmmTMB::glmmTMB(
+      dung_density_g_m2 ~
+        band_mid +
+        (1 | site_key) +
+        (1 | year_sampled),
+      ziformula = ~ band_mid + (1 | site_key),
+      family = glmmTMB::ziGamma(link = "log"),
+      data = dat
+    ),
+
+    C = NULL
+  )
+
+  age_LRT <- if (is.null(age_null)) NULL else anova(age_null, best_model)
+
+  list(
+    data = dat,
+    models = models,
+    aic = aic_table,
+    best_name = best_name,
+    best = best_model,
+    distance_null = distance_null,
+    distance_LRT = distance_LRT,
+    age_null = age_null,
+    age_LRT = age_LRT
+  )
+}
+
+zi_elephant <- fit_dung_models("elephant")
+zi_ungulate <- fit_dung_models("ungulate")
+
+cat("\nPANEL C: ELEPHANT AIC / SELECTED MODEL\n")
+print(zi_elephant$aic)
+print(zi_elephant$best_name)
+print(summary(zi_elephant$best))
+cat("\nElephant conditional-distance LRT\n")
+print(zi_elephant$distance_LRT)
+cat("\nElephant ZI-age LRT\n")
+print(zi_elephant$age_LRT)
+
+cat("\nPANEL C: UNGULATE AIC / SELECTED MODEL\n")
+print(zi_ungulate$aic)
+print(zi_ungulate$best_name)
+print(summary(zi_ungulate$best))
+cat("\nUngulate conditional-distance LRT\n")
+print(zi_ungulate$distance_LRT)
+cat("\nUngulate ZI-age LRT\n")
+print(zi_ungulate$age_LRT)
+
+
+# ============================================================
+# FIGURE 4C
+# Observed all-year site-year-band profile.
+# ============================================================
+
+raw_dung_profile <- dung_distance |>
+  dplyr::group_by(dung_group, band_mid) |>
+  dplyr::summarise(
+    mean_density = mean(dung_density_g_m2),
+    se = sd(dung_density_g_m2) / sqrt(dplyr::n()),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    lower95 = pmax(0.1, mean_density - 1.96 * se),
+    upper95 = mean_density + 1.96 * se,
+    dung_group_label = factor(
+      dung_group,
+      levels = c("elephant", "ungulate"),
+      labels = c("Elephant", "Ungulate")
+    )
+  )
+
+fig4c <- ggplot(
+  raw_dung_profile,
+  aes(
+    x = band_mid,
+    y = mean_density,
+    color = dung_group_label,
+    linetype = dung_group_label,
+    shape = dung_group_label,
+    group = dung_group_label
+  )
+) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.6) +
+  geom_errorbar(
+    aes(ymin = lower95, ymax = upper95),
+    width = 0.18,
+    linewidth = 0.65
+  ) +
+  scale_y_log10() +
+  scale_x_continuous(
+    breaks = c(0.5, 2.5, 5.5, 10.5, 14.5),
+    labels = c("0-1", "2-3", "5-6", "10-11", "14-15")
+  ) +
+  scale_color_manual(
+    values = c("Elephant" = "#0072B2", "Ungulate" = "#D55E00"),
+    name = NULL
+  ) +
+  scale_linetype_manual(
+    values = c("Elephant" = "solid", "Ungulate" = "dashed"),
+    name = NULL
+  ) +
+  scale_shape_manual(
+    values = c("Elephant" = 16, "Ungulate" = 15),
+    name = NULL
+  ) +
+  labs(
+    x = "Distance from carcass center (m)",
+    y = expression("Mean dung density (g "*m^{-2}*"; log scale)")
+  ) +
+  theme_classic(base_size = 13) +
+  theme(legend.position = "right")
+
+
+# ============================================================
+# COMBINE AND SAVE FIGURE 4
+# ============================================================
+
+fig4 <- (
+  fig4a /
+    fig4b /
+    fig4c
+) +
+  patchwork::plot_layout(heights = c(1.05, 1, 1)) +
+  patchwork::plot_annotation(tag_levels = "A") &
+  theme(
+    plot.tag = element_text(size = 16, face = "bold")
+  )
+
+fig4
+
+ggsave(
+  file.path(figure_dir, "Figure_4_dung_FINAL.png"),
+  fig4,
+  width = 10,
+  height = 14,
+  dpi = 600
+)
+
+
+# ============================================================
+# APPENDIX FIGURE S2
+# Coefficients from the SAME selected 2023-2025 ZI-Gamma models.
+# This automatically stays synchronized with Figure 4C.
+# ============================================================
+
+extract_one_coefficient <- function(model, component, term, dung_label, panel_label) {
+
+  mat <- if (component == "cond") {
+    summary(model)$coefficients$cond
+  } else {
+    summary(model)$coefficients$zi
+  }
+
+  if (is.null(mat) || !(term %in% rownames(mat))) return(NULL)
+
+  estimate <- unname(mat[term, "Estimate"])
+  se <- unname(mat[term, "Std. Error"])
+  p <- unname(mat[term, "Pr(>|z|)"])
+
+  tibble::tibble(
+    dung_group = dung_label,
+    component = panel_label,
+    estimate = estimate,
+    conf.low = estimate - 1.96 * se,
+    conf.high = estimate + 1.96 * se,
+    p.value = p
+  )
+}
+
+extract_dung_coefficients <- function(fit, dung_label) {
+  dplyr::bind_rows(
+    extract_one_coefficient(
+      fit$best,
+      "cond",
+      "band_mid",
+      dung_label,
+      "Conditional distance"
+    ),
+    extract_one_coefficient(
+      fit$best,
+      "zi",
+      "band_mid",
+      dung_label,
+      "ZI distance"
+    ),
+    extract_one_coefficient(
+      fit$best,
+      "zi",
+      "age_years_sc",
+      dung_label,
+      "ZI age"
+    )
+  )
+}
+
+coef_plot_df <- dplyr::bind_rows(
+  extract_dung_coefficients(zi_elephant, "Elephant"),
+  extract_dung_coefficients(zi_ungulate, "Ungulate")
+) |>
+  dplyr::mutate(
+    dung_group = factor(dung_group, levels = c("Elephant", "Ungulate")),
+    component = factor(
+      component,
+      levels = c("Conditional distance", "ZI distance", "ZI age")
+    )
+  )
+
+figS2 <- ggplot(
+  coef_plot_df,
+  aes(x = estimate, y = dung_group)
+) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    color = "grey50"
+  ) +
+  geom_errorbarh(
+    aes(xmin = conf.low, xmax = conf.high),
+    height = 0.18,
+    linewidth = 0.8
+  ) +
+  geom_point(size = 2.8) +
+  facet_wrap(~ component, scales = "free_x") +
+  labs(
+    x = "Model coefficient estimate",
+    y = NULL
+  ) +
+  theme_classic(base_size = 13)
+
+figS2
+
+ggsave(
+  file.path(figure_dir, "Figure_S2_dung_coefficients.png"),
+  figS2,
+  width = 7,
+  height = 4.5,
+  dpi = 600
+)
+```
+
+# Appendix outputs
+
+```{r}
+#| label: appendix-outputs
+
+# ============================================================
+# DUNG MODEL COEFFICIENTS
+# Model-derived coefficients for Appendix Figure S1.
+# Nothing is hard-coded.
+# ============================================================
+
+extract_dung_coefficients <- function(fit, label) {
+  
+  broom.mixed::tidy(
+    fit$best,
+    effects = "fixed",
+    conf.int = TRUE
+  ) |>
+    dplyr::filter(
+      (component == "cond" & term == "band_mid") |
+      (component == "zi" & term %in% c("band_mid", "age_years_sc"))
+    ) |>
+    dplyr::transmute(
+      
+      dung_group = label,
+      
+      component = dplyr::case_when(
+        component == "cond" & term == "band_mid" ~
+          "Conditional distance",
+        
+        component == "zi" & term == "band_mid" ~
+          "ZI distance",
+        
+        component == "zi" & term == "age_years_sc" ~
+          "ZI age"
+      ),
+      
+      estimate,
+      conf.low,
+      conf.high,
+      p.value
+    )
+}
+
+
+coef_plot_df <- dplyr::bind_rows(
+  
+  extract_dung_coefficients(
+    zi_elephant,
+    "Elephant"
+  ),
+  
+  extract_dung_coefficients(
+    zi_ungulate,
+    "Other ungulates"
+  )
+  
+) |>
+  dplyr::mutate(
+    
+    dung_group = factor(
+      dung_group,
+      levels = c(
+        "Elephant",
+        "Other ungulates"
+      )
+    ),
+    
+    component = factor(
+      component,
+      levels = c(
+        "Conditional distance",
+        "ZI distance",
+        "ZI age"
+      )
+    )
+  )
+
+
+# ============================================================
+# APPENDIX FIGURE S1
+# DUNG MODEL COEFFICIENTS
+# ============================================================
+
+figS1 <- ggplot(
+  coef_plot_df,
+  aes(
+    x = estimate,
+    y = dung_group
+  )
+) +
+  
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    color = "grey50"
+  ) +
+  
+  geom_errorbarh(
+    aes(
+      xmin = conf.low,
+      xmax = conf.high
+    ),
+    height = 0.18,
+    linewidth = 0.8
+  ) +
+  
+  geom_point(
+    size = 2.8
+  ) +
+  
+  facet_wrap(
+    ~ component,
+    scales = "free_x"
+  ) +
+  
+  labs(
+    x = "Model coefficient estimate",
+    y = NULL
+  ) +
+  
+  theme_classic(
+    base_size = 13
+  )
+
+
+figS1
+
+
+ggsave(
+  file.path(
+    figure_dir,
+    "Figure_S1_dung_coefficients.png"
+  ),
+  figS1,
+  width = 7,
+  height = 4.5,
+  dpi = 600
+)
+
+
+# ============================================================
+# H1 APPENDIX TABLES
+# ============================================================
+
+readr::write_csv(
+  as.data.frame(h1_emm),
+  file.path(
+    data_dir,
+    "Appendix_Table_H1_EMMs.csv"
+  )
+)
+
+
+readr::write_csv(
+  as.data.frame(
+    pairs(
+      h1_emm,
+      adjust = "tukey"
+    )
+  ),
+  file.path(
+    data_dir,
+    "Appendix_Table_H1_Tukey.csv"
+  )
+)
+
+
+# ============================================================
+# H2 APPENDIX TABLE
+# Planned exclosure-control contrasts
+# ============================================================
+
+readr::write_csv(
+  as.data.frame(
+    summary(
+      h2_contrasts,
+      by = NULL,
+      adjust = "holm",
+      infer = TRUE
+    )
+  ),
+  file.path(
+    data_dir,
+    "Appendix_Table_H2_contrasts.csv"
+  )
+)
+
+
+# ============================================================
+# H1 NUTRIENT PCA APPENDIX OUTPUTS
+# ============================================================
+
+pca_loadings_df <- tibble::tibble(
+  
+  nutrient = rownames(
+    nutrient_pca$rotation
+  ),
+  
+  PC1_loading =
+    nutrient_pca$rotation[, 1],
+  
+  PC2_loading =
+    nutrient_pca$rotation[, 2],
+  
+  PC3_loading =
+    nutrient_pca$rotation[, 3]
+)
+
+
+readr::write_csv(
+  pca_loadings_df,
+  file.path(
+    data_dir,
+    "Appendix_Table_nutrient_PCA_loadings.csv"
+  )
+)
+
+
+pca_variance_df <- tibble::tibble(
+  
+  component = c(
+    "PC1",
+    "PC2",
+    "PC3"
+  ),
+  
+  proportion_variance =
+    summary(
+      nutrient_pca
+    )$importance[
+      "Proportion of Variance",
+    ],
+  
+  cumulative_variance =
+    summary(
+      nutrient_pca
+    )$importance[
+      "Cumulative Proportion",
+    ]
+)
+
+
+readr::write_csv(
+  pca_variance_df,
+  file.path(
+    data_dir,
+    "Appendix_Table_nutrient_PCA_variance.csv"
+  )
+)
+
+
+readr::write_csv(
+  as.data.frame(
+    mod_nutrient_distance
+  ) |>
+    tibble::rownames_to_column(
+      "term"
+    ),
+  file.path(
+    data_dir,
+    "Appendix_Table_nutrient_PERMANOVA.csv"
+  )
+)
+
+
+# ============================================================
+# H3 DUNG MODEL-SELECTION TABLE
+# ============================================================
+
+dung_aic_df <- dplyr::bind_rows(
+  
+  zi_elephant$aic |>
+    dplyr::mutate(
+      dung_group = "Elephant"
+    ),
+  
+  zi_ungulate$aic |>
+    dplyr::mutate(
+      dung_group = "Other ungulates"
+    )
+  
+)
+
+
+readr::write_csv(
+  dung_aic_df,
+  file.path(
+    data_dir,
+    "Appendix_Table_dung_AIC.csv"
+  )
+)
+
+
+# ============================================================
+# H3 DUNG COEFFICIENT TABLE
+# Same values plotted in Figure S1
+# ============================================================
+
+readr::write_csv(
+  coef_plot_df,
+  file.path(
+    data_dir,
+    "Appendix_Figure_S1_coefficients.csv"
+  )
+)
+```
